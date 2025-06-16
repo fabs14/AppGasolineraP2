@@ -51,7 +51,8 @@ class PCalculo : Fragment(), OnMapReadyCallback {
         txtResultado = view.findViewById(R.id.txtResultado)
 
         nSucursal = NSucursal(requireContext())  //inicializando Sucursal
-        nCalculo = NCalculo.getInstance()   //inicializando nCalculo
+        nCalculo = NCalculo() // se instancia
+
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -72,19 +73,22 @@ class PCalculo : Fragment(), OnMapReadyCallback {
             val validarSucursal = ValidarSucursal()
             val validarLitros = ValidarLitros()
             val validarDibujo = ValidarDibujo()
-            val ejecutarCalculo = EjecutarCalculo()
 
-            validarSucursal.setNext(validarLitros)
+            validarSucursal.setNext(validarLitros)   //cadena de responsabilidad (recursivo)
                 .setNext(validarDibujo)
-                .setNext(ejecutarCalculo)
 
             if (validarSucursal.handle(request)) {
-                val mensaje = nCalculo.obtenerUltimoResultadoFormateado(requireContext())
+                //  Ahora sí, PCalculo llama directamente a NCalculo
+                nCalculo.realizarCalculo(    //realiza calculo a negocio
+                    context = requireContext(),
+                    idSucursal = request.sucursalId!!,
+                    distanciaMetros = request.distanciaMetrosCalculada!!,
+                    litrosDisponibles = request.litrosDisponibles!!,
+                    cantidadBombas = request.bombas!!
+                )
+                val mensaje = nCalculo.obtenerUltimoResultadoFormateado(requireContext())  //muestra resultado
                 mostrarResultado(mensaje)
-            } else {
-                Toast.makeText(requireContext(), "Error: Verifique los datos ingresados.", Toast.LENGTH_SHORT).show()
             }
-
 
         }
     }

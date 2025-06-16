@@ -8,6 +8,10 @@ import android.widget.*
 import androidx.fragment.app.Fragment
 import com.example.gasolineraparcial2.R
 import com.example.gasolineraparcial2.negocio.NSucursal
+import com.example.gasolineraparcial2.presentacion.template.AccionSucursal
+import com.example.gasolineraparcial2.presentacion.template.ActualizarSucursal
+import com.example.gasolineraparcial2.presentacion.template.CrearSucursal
+import com.example.gasolineraparcial2.presentacion.template.EliminarSucursal
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -89,77 +93,31 @@ class PSucursal : Fragment(), OnMapReadyCallback {
             val lon = edtLongitud.text.toString().toDoubleOrNull()
             val bmb = edtBombas.text.toString().toIntOrNull()
 
-            if (nombre.isNotBlank() && lat != null && lon != null && bmb != null) {
-                val ok = nSucursal.crearSucursal(nombre, lat, lon, bmb)
-                if (ok) {
-                    Toast.makeText(requireContext(), "Sucursal creada", Toast.LENGTH_SHORT).show()
-                    limpiarCampos()
-                    cargarSucursales()
-                } else {
-                    Toast.makeText(requireContext(), "Error al crear", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                Toast.makeText(
-                    requireContext(),
-                    "Complete todos los campos correctamente",
-                    Toast.LENGTH_SHORT
-                ).show()
+            val accion: AccionSucursal = CrearSucursal(requireContext(), nombre, lat, lon, bmb)
+            if (accion.ejecutar()) {
+                limpiarCampos()
+                cargarSucursales()
             }
         }
 
         btnActualizar.setOnClickListener {
-            if (idEditando == null) {
-                Toast.makeText(
-                    requireContext(),
-                    "Seleccione una sucursal para actualizar",
-                    Toast.LENGTH_SHORT
-                ).show()
-                return@setOnClickListener
-            }
-
             val nombre = edtNombre.text.toString().trim()
             val lat = edtLatitud.text.toString().toDoubleOrNull()
             val lon = edtLongitud.text.toString().toDoubleOrNull()
             val bmb = edtBombas.text.toString().toIntOrNull()
 
-            if (nombre.isNotBlank() && lat != null && lon != null && bmb != null) {
-                val ok = nSucursal.actualizarSucursal(idEditando!!, nombre, lat, lon, bmb)
-                if (ok) {
-                    Toast.makeText(requireContext(), "Sucursal actualizada", Toast.LENGTH_SHORT)
-                        .show()
-                    limpiarCampos()
-                    cargarSucursales()
-                } else {
-                    Toast.makeText(requireContext(), "Error al actualizar", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            } else {
-                Toast.makeText(
-                    requireContext(),
-                    "Complete todos los campos correctamente",
-                    Toast.LENGTH_SHORT
-                ).show()
+            val accion: AccionSucursal = ActualizarSucursal(requireContext(), idEditando, nombre, lat, lon, bmb)
+            if (accion.ejecutar()) {
+                limpiarCampos()
+                cargarSucursales()
             }
         }
 
         btnEliminar.setOnClickListener {
-            if (idEditando != null) {
-                val ok = nSucursal.eliminarSucursal(idEditando!!)
-                if (ok) {
-                    Toast.makeText(requireContext(), "Sucursal eliminada", Toast.LENGTH_SHORT)
-                        .show()
-                    limpiarCampos()
-                    cargarSucursales()
-                } else {
-                    Toast.makeText(requireContext(), "Error al eliminar", Toast.LENGTH_SHORT).show()
-                }
-                idEditando = null
-            } else {
-                Toast.makeText(
-                    requireContext(),
-                    "Seleccione una sucursal primero",
-                    Toast.LENGTH_SHORT
-                ).show()
+            val accion: AccionSucursal = EliminarSucursal(requireContext(), idEditando)
+            if (accion.ejecutar()) {
+                limpiarCampos()
+                cargarSucursales()
             }
         }
     }

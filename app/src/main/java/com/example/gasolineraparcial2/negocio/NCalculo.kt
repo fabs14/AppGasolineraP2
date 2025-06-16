@@ -5,19 +5,7 @@ import com.example.gasolineraparcial2.datos.DCalculo
 import java.text.SimpleDateFormat
 import java.util.*
 
-class NCalculo private constructor() {
-
-    companion object {
-        private class Holder {
-            companion object {
-                val INSTANCE = NCalculo()
-            }
-        }
-
-        fun getInstance(): NCalculo {
-            return Holder.INSTANCE
-        }
-    }
+class NCalculo {
 
     private val largoPromedioVehiculo = 4.5
     private val tiempoPromedioPorVehiculo = 4
@@ -48,8 +36,7 @@ class NCalculo private constructor() {
             fechaHora
         )
 
-        val dCalculo = DCalculo(context)  //inicializando
-
+        val dCalculo = DCalculo(context)
         dCalculo.insertarCalculo(
             idSucursal,
             resultado.combustibleDisponible,
@@ -84,13 +71,11 @@ class NCalculo private constructor() {
         return mensaje
     }
 
-    //  Esta es la función que genera la fecha y hora actual
     private fun obtenerFechaHoraActual(): String {
         val formato = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
         return formato.format(Date())
     }
 
-    // Clase de resultado que representa el cálculo
     class ResultadoCalculo(
         val combustibleDisponible: Boolean,
         val tiempoEsperaMinutos: Int,

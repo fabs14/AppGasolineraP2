@@ -16,7 +16,6 @@ class ValidarDibujo : Handler {
 
         if (puntos == null || puntos.size < 2) {
             Toast.makeText(request.context, "Debe dibujar la fila con al menos dos puntos", Toast.LENGTH_SHORT).show()
-
             return false
         }
 
@@ -35,8 +34,8 @@ class ValidarDibujo : Handler {
 
         request.distanciaMetrosCalculada = totalDistancia
         println("✅ ValidarDibujo OK")
+
+        // ✅ Si ya no hay next, este es el último paso de la cadena
         return next?.handle(request) ?: true
     }
-
-
 }
