@@ -1,5 +1,7 @@
 package com.example.gasolineraparcial2.presentacion.handlers
 
+import android.widget.Toast
+
 class ValidarSucursal : Handler {
     private var next: Handler? = null
 
@@ -12,6 +14,7 @@ class ValidarSucursal : Handler {
         return if (request.sucursalId != null && request.sucursalId > 0) {
             next?.handle(request) ?: true
         } else {
+            Toast.makeText(request.context, "Debe seleccionar una sucursal", Toast.LENGTH_SHORT).show()
             println("❌ Error: Seleccione una sucursal válida")
             false
         }

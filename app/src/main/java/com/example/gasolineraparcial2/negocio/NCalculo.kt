@@ -48,7 +48,9 @@ class NCalculo private constructor() {
             fechaHora
         )
 
-        DCalculo(context).insertarCalculo(
+        val dCalculo = DCalculo(context)  //inicializando
+
+        dCalculo.insertarCalculo(
             idSucursal,
             resultado.combustibleDisponible,
             resultado.tiempoEsperaMinutos,
@@ -59,12 +61,36 @@ class NCalculo private constructor() {
         return resultado
     }
 
+    fun obtenerUltimoResultadoFormateado(context: Context): String {
+        val dCalculo = DCalculo(context)
+        val cursor = dCalculo.obtenerUltimoCalculo()
+
+        var mensaje = "❌ No hay resultados aún"
+        if (cursor.moveToFirst()) {
+            val disponible = cursor.getInt(cursor.getColumnIndexOrThrow("combustibleDisponible")) == 1
+            val tiempo = cursor.getInt(cursor.getColumnIndexOrThrow("tiempoEsperaMinutos"))
+            val litros = cursor.getInt(cursor.getColumnIndexOrThrow("litrosRestantes"))
+            val fecha = cursor.getString(cursor.getColumnIndexOrThrow("fechaHora"))
+
+            mensaje = """
+                ✅ Último cálculo:
+                Combustible disponible: ${if (disponible) "Sí" else "No"}
+                Tiempo estimado: $tiempo min
+                Litros restantes: $litros
+                Fecha: $fecha
+            """.trimIndent()
+        }
+        cursor.close()
+        return mensaje
+    }
+
+    //  Esta es la función que genera la fecha y hora actual
     private fun obtenerFechaHoraActual(): String {
         val formato = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
         return formato.format(Date())
     }
 
-    // CLASE INTERNA REGULAR (no data class)
+    // Clase de resultado que representa el cálculo
     class ResultadoCalculo(
         val combustibleDisponible: Boolean,
         val tiempoEsperaMinutos: Int,

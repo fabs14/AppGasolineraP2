@@ -16,7 +16,7 @@ class ValidarDibujo : Handler {
 
         if (puntos == null || puntos.size < 2) {
             Toast.makeText(request.context, "Debe dibujar la fila con al menos dos puntos", Toast.LENGTH_SHORT).show()
-            request.txtResultado?.text = "⚠️ Debe dibujar la fila para poder calcular."
+
             return false
         }
 

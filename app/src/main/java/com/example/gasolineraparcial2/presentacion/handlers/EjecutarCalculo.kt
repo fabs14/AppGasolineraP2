@@ -1,9 +1,13 @@
 package com.example.gasolineraparcial2.presentacion.handlers
 
-import com.example.gasolineraparcial2.negocio.NCalculo
 import android.widget.Toast
+import com.example.gasolineraparcial2.negocio.NCalculo
 
 class EjecutarCalculo : Handler {
+
+    //  misma única instancia que gestiona el patrón Singleton.
+    private val nCalculo = NCalculo.getInstance()
+
     override fun setNext(handler: Handler): Handler = this
 
     override fun handle(request: CalculoRequest): Boolean {
@@ -20,7 +24,8 @@ class EjecutarCalculo : Handler {
                 return false
             }
 
-            val resultado = NCalculo.getInstance().realizarCalculo(
+            //  Uso del objeto de negocio inicializado correctamente
+            nCalculo.realizarCalculo(
                 context = request.context,
                 idSucursal = sucursalId,
                 distanciaMetros = distancia,
@@ -28,15 +33,7 @@ class EjecutarCalculo : Handler {
                 cantidadBombas = bombas
             )
 
-            val mensaje = """
-                ✅ Cálculo realizado:
-                Combustible disponible: ${if (resultado.combustibleDisponible) "Sí" else "No"}
-                Tiempo estimado: ${resultado.tiempoEsperaMinutos} min
-                Litros restantes: ${resultado.litrosRestantes}
-                Fecha: ${resultado.fechaHora}
-            """.trimIndent()
-
-            request.txtResultado?.text = mensaje
+            println("✅ Cálculo realizado y guardado en base de datos")
             return true
         } catch (e: Exception) {
             println("❌ Excepción en EjecutarCalculo: ${e.message}")
@@ -44,7 +41,4 @@ class EjecutarCalculo : Handler {
             return false
         }
     }
-
 }
-
-

@@ -1,6 +1,6 @@
 package com.example.gasolineraparcial2.presentacion
 
-import android.location.Location
+//import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
 import com.example.gasolineraparcial2.R
+import com.example.gasolineraparcial2.negocio.NCalculo
 import com.example.gasolineraparcial2.negocio.NSucursal
 import com.example.gasolineraparcial2.presentacion.handlers.* //import a todos los handlers
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -25,12 +26,13 @@ class PCalculo : Fragment(), OnMapReadyCallback {
     private lateinit var btnCalcular: Button
     private lateinit var spinnerSucursal: Spinner
     private lateinit var txtResultado: TextView
+
     private lateinit var nSucursal: NSucursal
+    private lateinit var nCalculo: NCalculo
 
     private var idSucursal: Int = -1
     private var bombas: Int = 0
     private var puntoSucursal: LatLng? = null
-    private var distanciaMetros: Double = 0.0
 
     private val puntosFila = mutableListOf<LatLng>()
 
@@ -48,7 +50,8 @@ class PCalculo : Fragment(), OnMapReadyCallback {
         spinnerSucursal = view.findViewById(R.id.spinnerSucursal)
         txtResultado = view.findViewById(R.id.txtResultado)
 
-        nSucursal = NSucursal(requireContext())
+        nSucursal = NSucursal(requireContext())  //inicializando Sucursal
+        nCalculo = NCalculo.getInstance()   //inicializando nCalculo
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -63,24 +66,36 @@ class PCalculo : Fragment(), OnMapReadyCallback {
                 sucursalId = idSucursal,
                 litrosDisponibles = litros,
                 bombas = bombas,
-                puntosFila = puntosFila.toList(),
-                txtResultado = txtResultado
+                puntosFila = puntosFila.toList()
             )
 
-            val cadena = ValidarSucursal()
-                .setNext(ValidarLitros())
-                .setNext(ValidarDibujo())
-                .setNext(EjecutarCalculo())
+            val validarSucursal = ValidarSucursal()
+            val validarLitros = ValidarLitros()
+            val validarDibujo = ValidarDibujo()
+            val ejecutarCalculo = EjecutarCalculo()
 
-            if (!cadena.handle(request)) {
+            validarSucursal.setNext(validarLitros)
+                .setNext(validarDibujo)
+                .setNext(ejecutarCalculo)
+
+            if (validarSucursal.handle(request)) {
+                val mensaje = nCalculo.obtenerUltimoResultadoFormateado(requireContext())
+                mostrarResultado(mensaje)
+            } else {
                 Toast.makeText(requireContext(), "Error: Verifique los datos ingresados.", Toast.LENGTH_SHORT).show()
             }
+
+
         }
     }
 
     private fun cargarSpinnerSucursales() {
         val listaNombres = mutableListOf<String>()
         val listaDatos = mutableListOf<Triple<Int, LatLng, Int>>()
+
+        // 👇 Agregamos un ítem dummy como primera opción
+        listaNombres.add("Seleccione una sucursal")
+        listaDatos.add(Triple(-1, LatLng(0.0, 0.0), 0))
 
         val cursor = nSucursal.obtenerSucursales()
         while (cursor.moveToNext()) {
@@ -108,13 +123,25 @@ class PCalculo : Fragment(), OnMapReadyCallback {
 
                 map.clear()
                 puntosFila.clear()
-                map.addMarker(MarkerOptions().position(latLng).title("Sucursal"))
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                //  Solo mostramos en el mapa si se seleccionó una sucursal válida
+                if (idSel > 0) {
+                    map.addMarker(MarkerOptions().position(latLng).title("Sucursal"))
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
+
+        // 👇 Seleccionamos el ítem dummy por defecto
+        spinnerSucursal.setSelection(0)
     }
+
+
+    private fun mostrarResultado(mensaje: String) {
+        txtResultado.text = mensaje
+    }
+
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
@@ -137,20 +164,4 @@ class PCalculo : Fragment(), OnMapReadyCallback {
             }
         }
     }
-
-    private fun calcularDistanciaTotal(puntos: List<LatLng>): Double {
-        var distancia = 0.0
-        for (i in 0 until puntos.size - 1) {
-            val result = FloatArray(1)
-            Location.distanceBetween(
-                puntos[i].latitude, puntos[i].longitude,
-                puntos[i + 1].latitude, puntos[i + 1].longitude,
-                result
-            )
-            distancia += result[0]
-        }
-        return distancia
-    }
-
-
 }
